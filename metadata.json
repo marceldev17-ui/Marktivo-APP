@@ -1,0 +1,8 @@
+{
+  "name": "Marktivo",
+  "description": "Plataforma centralizada de gestão de tráfego pago, análise de dados, criação de criativos e automação de marketing com Inteligência Artificial para a agência Marktivo.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
