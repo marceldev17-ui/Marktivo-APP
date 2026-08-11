@@ -18,7 +18,7 @@ import {
   FolderHeart,
   X,
   ExternalLink,
-  ChevronDown,
+  ChevronDown, Film,
   Upload
 } from "lucide-react";
 
@@ -232,6 +232,64 @@ const ASPECT_RATIOS = [
   "2:3 (Fotográfico Vertical - Catalogo de Moda / E-commerce)"
 ];
 
+const getDynamicLabels = (type: string) => {
+  switch (type) {
+    case "Imagem":
+      return {
+        subjectTitle: "2. Sujeito / Elemento Principal da Imagem",
+        subjectTip: "Ex: Uma modelo de 25 anos, loira, usando roupas de inverno, segurando uma xícara de café.",
+        conceptTitle: "3. Ideia / Ação na Imagem",
+        conceptTip: "Ex: Ela está caminhando em uma rua de Nova York com folhas de outono caindo ao redor.",
+        styleTitle: "{dynamicLabels.styleTitle}ização",
+        styleTip: "Ex: Fotografia realista 8k, iluminação cinematográfica, lente 35mm."
+      };
+    case "Vídeo":
+      return {
+        subjectTitle: "2. Pessoas ou Objetos no Vídeo",
+        subjectTip: "Ex: Carro em movimento na estrada, ou modelo sorrindo.",
+        conceptTitle: "3. Ação / Movimento Principal no Vídeo",
+        conceptTip: "Ex: O carro acelera levantando poeira, enquanto o sol se põe ao fundo.",
+        styleTitle: "4. Estilo de Arte / Visual do Vídeo",
+        styleTip: "Ex: Fotografia realista, hiper detalhado, cinematográfico."
+      };
+    case "Storyboard de Vídeo":
+      return {
+        subjectTitle: "2. Personagens Base para o Storyboard",
+        subjectTip: "Ex: Casal jovem explorando a cidade (Eles aparecerão em várias cenas).",
+        conceptTitle: "3. Tema Central da História",
+        conceptTip: "Ex: Uma jornada sobre descoberta e paixão pelo produto.",
+        styleTitle: "4. Direção de Arte do Storyboard",
+        styleTip: "Ex: Moody, cinematográfico, cores quentes."
+      };
+    case "Copy / Texto":
+      return {
+        subjectTitle: "2. Público-Alvo / Avatar do Cliente",
+        subjectTip: "Ex: Mulheres de 25-45 anos, interessadas em moda sustentável e autocuidado.",
+        conceptTitle: "3. Promessa / Gancho da Copy (Oferta)",
+        conceptTip: "Ex: Desconto exclusivo de Black Friday com frete grátis nas primeiras 24h.",
+        styleTitle: "4. Tom de Voz da Copy",
+        styleTip: "Ex: Persuasivo, Urgente, Empático, Autoridade ou Divertido."
+      };
+    case "Carrossel":
+      return {
+        subjectTitle: "2. Protagonista do Carrossel (Produto/Pessoa)",
+        subjectTip: "Ex: Uma caixa do produto e um especialista ensinando seu uso.",
+        conceptTitle: "3. Tema do Carrossel / Conteúdo Educativo",
+        conceptTip: "Ex: 5 passos essenciais para melhorar a rotina matinal em menos de 10 minutos.",
+        styleTitle: "4. Estilo Visual dos Slides",
+        styleTip: "Ex: Minimalista, Cores sólidas, Ilustrações 3D limpas."
+      };
+    default:
+      return {
+        subjectTitle: "{dynamicLabels.subjectTitle}",
+        subjectTip: "Ex: Um cachorro usando óculos escuros.",
+        conceptTitle: "{dynamicLabels.conceptTitle}",
+        conceptTip: "Ex: Produto em cima da mesa brilhando.",
+        styleTitle: "{dynamicLabels.styleTitle}",
+        styleTip: "Ex: Fotografia realista 8k."
+      };
+  }
+};
 export const CreativeStudioView: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<"prompts" | "social" | "landing">("prompts");
 
@@ -239,6 +297,7 @@ export const CreativeStudioView: React.FC = () => {
   const [selectedNicheOption, setSelectedNicheOption] = useState("🏋️ E-commerce, Fitness & Suplementos");
   const [customNiche, setCustomNiche] = useState("");
   const [promptType, setPromptType] = useState<"Imagem" | "Vídeo" | "Storyboard de Vídeo" | "Copy / Texto" | "Carrossel">("Imagem");
+  const dynamicLabels = getDynamicLabels(promptType);
 
   const [selectedConceptPreset, setSelectedConceptPreset] = useState("✨ Pote/Produto flutuando no ar com partículas de luz e iluminação neon");
   const [promptConcept, setPromptConcept] = useState("Pote de suplemento premium flutuando com luzes neon e iluminação de estúdio");
@@ -270,6 +329,8 @@ export const CreativeStudioView: React.FC = () => {
   const [videoPromptDetails, setVideoPromptDetails] = useState("Transição suave, zoom progressivo no elemento central, estabilização cinematográfica");
   const [videoLighting, setVideoLighting] = useState("Cinematográfica (High-End Comercial)");
   const [videoTransition, setVideoTransition] = useState("Corte Seco / Nenhuma");
+  const [storyboardScenes, setStoryboardScenes] = useState(5);
+  const [storyboardStory, setStoryboardStory] = useState("Uma jornada heroica mostrando o antes e depois do uso do produto, focando na transformação emocional.");
   
   const [loadingPrompts, setLoadingPrompts] = useState(false);
   const [refiningId, setRefiningId] = useState<string | null>(null);
@@ -546,7 +607,8 @@ export const CreativeStudioView: React.FC = () => {
           style: promptStyle,
           format: promptFormat,
           promptType: promptType,
-          videoDetails: (promptType === "Vídeo" || promptType === "Storyboard de Vídeo") ? { duration: videoDuration, cameraMotion: videoCameraMotion, extraDetails: videoPromptDetails, lighting: videoLighting, transition: videoTransition } : undefined,
+          videoDetails: promptType === "Vídeo" ? { duration: videoDuration, cameraMotion: videoCameraMotion, extraDetails: videoPromptDetails, lighting: videoLighting, transition: videoTransition } : undefined,
+          storyboardDetails: promptType === "Storyboard de Vídeo" ? { scenes: storyboardScenes, duration: videoDuration, cameraMotion: videoCameraMotion, lighting: videoLighting, story: storyboardStory } : undefined,
           characterDetails: {
             characterType: charType,
             gender: charGender,
@@ -870,7 +932,7 @@ export const CreativeStudioView: React.FC = () => {
               <div className="md:col-span-2 bg-slate-900/80 p-3.5 rounded-2xl border border-slate-700/80">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-xs font-extrabold text-amber-400 block">
-                    2. Pessoas, Objetos, Avatares, ETs ou Animações na Cena
+                    {dynamicLabels.subjectTitle}
                   </label>
                   <span className="text-[10px] text-slate-400 font-medium">Personalização Total do Ator</span>
                 </div>
@@ -947,10 +1009,11 @@ export const CreativeStudioView: React.FC = () => {
                     type="text"
                     value={promptSubject}
                     onChange={(e) => setPromptSubject(e.target.value)}
-                    placeholder="Detalhamento livre das pessoas, modelos, roupas, mascotes ou objetos..."
+                    placeholder={dynamicLabels.subjectTip}
                     className="w-full bg-slate-800 text-white text-xs font-medium rounded-xl p-2.5 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
                   />
                   <VoiceInputBtn onResult={setPromptSubject} />
+                  <p className="text-[10px] text-amber-500/80 mt-1.5 ml-1 font-medium">{dynamicLabels.subjectTip}</p>
                 </div>
               </div>
 
@@ -958,7 +1021,7 @@ export const CreativeStudioView: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-bold text-slate-300 block">
-                    3. Ideia / Conceito do Anúncio
+                    {dynamicLabels.conceptTitle}
                   </label>
                   <span className="text-[10px] text-amber-400 font-bold">✨ Sugestões por Nicho</span>
                 </div>
@@ -979,17 +1042,18 @@ export const CreativeStudioView: React.FC = () => {
                     type="text"
                     value={promptConcept}
                     onChange={(e) => setPromptConcept(e.target.value)}
-                    placeholder="Detalhamento do produto ou gancho do anúncio..."
+                    placeholder={dynamicLabels.conceptTip}
                     className="w-full bg-slate-800 text-white text-xs font-medium rounded-xl p-3 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  />
+                />
                   <VoiceInputBtn onResult={(text) => setPromptConcept((prev) => prev ? prev + " " + text : text)} />
+                  <p className="text-[10px] text-amber-500/80 mt-1.5 ml-1 font-medium">{dynamicLabels.conceptTip}</p>
                 </div>
               </div>
 
               {/* 4. ESTILO VISUAL */}
               <div>
                 <label className="text-xs font-bold text-slate-300 block mb-1">
-                  4. Estilo Visual / Render
+                  {dynamicLabels.styleTitle}
                 </label>
                 <select
                   value={selectedStylePreset}
@@ -1007,9 +1071,10 @@ export const CreativeStudioView: React.FC = () => {
                   type="text"
                   value={promptStyle}
                   onChange={(e) => setPromptStyle(e.target.value)}
-                  placeholder="Ajustar estilo visual..."
+                  placeholder={dynamicLabels.styleTip}
                   className="w-full bg-slate-800 text-white text-xs font-medium rounded-xl p-3 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
+                <p className="text-[10px] text-amber-500/80 mt-1.5 ml-1 font-medium">{dynamicLabels.styleTip}</p>
               </div>
 
               {/* 5. FORMATO / PROPORÇÃO */}
@@ -1031,7 +1096,7 @@ export const CreativeStudioView: React.FC = () => {
               </div>
 
               {/* BLOCO EXCLUSIVO PARA VÍDEOS */}
-              {(promptType === "Vídeo" || promptType === "Storyboard de Vídeo") && (
+              {promptType === "Vídeo" && (
                 <div className="md:col-span-2 lg:col-span-3 bg-indigo-950/40 rounded-2xl p-5 border border-indigo-500/50 relative overflow-hidden shadow-lg mt-2">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[50px] pointer-events-none" />
                   
@@ -1120,13 +1185,113 @@ export const CreativeStudioView: React.FC = () => {
                   </div>
 
                   <div className="relative z-10">
-                    <label className="text-[11px] font-bold text-indigo-200 block mb-1">Direção Específica (Prompt Detalhado de Vídeo)</label>
-                    <input
-                      type="text"
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-bold text-indigo-200 block">Ideia / Exemplo do que será o Vídeo (Quadro de Detalhes)</label>
+                      <VoiceInputBtn onResult={(text) => setVideoPromptDetails((prev) => prev ? prev + " " + text : text)} />
+                    </div>
+                    <textarea
                       value={videoPromptDetails}
                       onChange={(e) => setVideoPromptDetails(e.target.value)}
-                      placeholder="Ex: Câmera gira lentamente enquanto a água espirra em câmera lenta sobre o produto..."
-                      className="w-full bg-slate-900 text-white text-xs font-medium rounded-xl p-3 border border-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="Descreva a ideia do seu vídeo aqui. Ex: O vídeo começa com um close-up do produto, a câmera gira lentamente e a água espirra em câmera lenta..."
+                      className="w-full bg-slate-900 text-white text-xs font-medium rounded-xl p-3 border border-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px] resize-y"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* BLOCO EXCLUSIVO PARA STORYBOARD DE VÍDEO */}
+              {promptType === "Storyboard de Vídeo" && (
+                <div className="md:col-span-2 lg:col-span-3 bg-purple-950/40 rounded-2xl p-5 border border-purple-500/50 relative overflow-hidden shadow-lg mt-2">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-[50px] pointer-events-none" />
+                  
+                  <div className="flex items-center gap-2 mb-4 relative z-10">
+                    <div className="bg-purple-500/20 p-2 rounded-lg border border-purple-500/30">
+                      <Film className="w-5 h-5 text-purple-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black text-purple-300 uppercase tracking-wide">Criação de Storyboard Completo</h4>
+                      <p className="text-[10px] text-purple-200/70">Crie uma sequência narrativa dividida em múltiplas cenas, com avatares e tempos definidos</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10 mb-4">
+                    <div>
+                      <label className="text-[11px] font-bold text-purple-200 block mb-1">Quantidade de Cenas</label>
+                      <input
+                        type="number"
+                        min="2"
+                        max="20"
+                        value={storyboardScenes}
+                        onChange={(e) => setStoryboardScenes(parseInt(e.target.value) || 5)}
+                        className="w-full bg-slate-900 text-white text-xs font-semibold rounded-xl p-2.5 border border-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-[11px] font-bold text-purple-200 block mb-1">Tempo Total Estimado</label>
+                      <select
+                        value={videoDuration}
+                        onChange={(e) => setVideoDuration(e.target.value)}
+                        className="w-full bg-slate-900 text-white text-xs font-semibold rounded-xl p-2.5 border border-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                      >
+                        <option value="15 Segundos (Reels Curto)">15 Segundos (Reels Curto)</option>
+                        <option value="30 Segundos (Reels Padrão)">30 Segundos (Reels Padrão)</option>
+                        <option value="60 Segundos (1 Minuto)">60 Segundos (1 Minuto)</option>
+                        <option value="3 Minutos (TikTok Longo)">3 Minutos (TikTok Longo)</option>
+                        <option value="5 Minutos+ (YouTube Clássico)">5 Minutos+ (YouTube Clássico)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-purple-200 block mb-1">Estilo Predominante Câmera</label>
+                      <select
+                        value={videoCameraMotion}
+                        onChange={(e) => setVideoCameraMotion(e.target.value)}
+                        className="w-full bg-slate-900 text-white text-xs font-semibold rounded-xl p-2.5 border border-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                      >
+                        <option value="Lento Pan / Deslizamento Suave">Lento Pan / Deslizamento Suave</option>
+                        <option value="Zoom In Lento (Aproximação)">Zoom In Lento (Aproximação)</option>
+                        <option value="Zoom Out (Afastamento Revelador)">Zoom Out (Afastamento Revelador)</option>
+                        <option value="Drone View (Vista Aérea Dinâmica)">Drone View (Vista Aérea Dinâmica)</option>
+                        <option value="FPV (Visão em Primeira Pessoa)">FPV (Visão em Primeira Pessoa)</option>
+                        <option value="Estático / Fixo (Cinemagraph)">Estático / Fixo (Cinemagraph)</option>
+                        <option value="Orbital (Giro 360º ao redor do objeto)">Orbital (Giro 360º ao redor do objeto)</option>
+                        <option value="Tracking Shot (Acompanhando o sujeito)">Tracking Shot (Acompanhando o sujeito)</option>
+                        <option value="Transição Morph / Caótico">Transição Morph / Caótico</option>
+                        <option value="Câmera de Mão (Handheld Shaky)">Câmera de Mão (Handheld Shaky)</option>
+                        <option value="Crane Shot (Movimento Vertical Elevado)">Crane Shot (Movimento Vertical Elevado)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-purple-200 block mb-1">Iluminação / Clima</label>
+                      <select
+                        value={videoLighting}
+                        onChange={(e) => setVideoLighting(e.target.value)}
+                        className="w-full bg-slate-900 text-white text-xs font-semibold rounded-xl p-2.5 border border-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                      >
+                        <option value="Cinematográfica (High-End Comercial)">Cinematográfica (High-End Comercial)</option>
+                        <option value="Golden Hour (Pôr do Sol Mágico)">Golden Hour (Pôr do Sol Mágico)</option>
+                        <option value="Iluminação Natural / Dia Ensolarado">Iluminação Natural / Dia Ensolarado</option>
+                        <option value="Cyberpunk / Neon Glow (Noturno)">Cyberpunk / Neon Glow (Noturno)</option>
+                        <option value="Dark & Moody (Sombrio / Suspense)">Dark & Moody (Sombrio / Suspense)</option>
+                        <option value="Luz de Estúdio (Softbox / Produto)">Luz de Estúdio (Softbox / Produto)</option>
+                        <option value="Volume Lighting / God Rays">Volume Lighting / God Rays</option>
+                        <option value="Vintage / VHS / Retrô 80s">Vintage / VHS / Retrô 80s</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-bold text-purple-200 block">Enredo / Roteiro da História</label>
+                      <VoiceInputBtn onResult={(text) => setStoryboardStory((prev) => prev ? prev + " " + text : text)} />
+                    </div>
+                    <textarea
+                      value={storyboardStory}
+                      onChange={(e) => setStoryboardStory(e.target.value)}
+                      placeholder="Descreva a história completa que você quer contar. Quais são os personagens (se usar avatares na imagem 1 e 2), o que acontece no início, meio e fim?"
+                      className="w-full bg-slate-900 text-white text-xs font-medium rounded-xl p-3 border border-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[120px] resize-y"
                     />
                   </div>
                 </div>
@@ -1505,7 +1670,7 @@ export const CreativeStudioView: React.FC = () => {
                 value={postNiche}
                 onChange={(e) => setPostNiche(e.target.value)}
                 className="w-full bg-slate-800 text-white text-xs font-medium rounded-xl p-3 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
+                />
             </div>
 
             <div>
@@ -1515,7 +1680,7 @@ export const CreativeStudioView: React.FC = () => {
                 value={postTopic}
                 onChange={(e) => setPostTopic(e.target.value)}
                 className="w-full bg-slate-800 text-white text-xs font-medium rounded-xl p-3 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
+                />
             </div>
 
             <div>
@@ -1607,7 +1772,7 @@ export const CreativeStudioView: React.FC = () => {
                 value={lpNiche}
                 onChange={(e) => setLpNiche(e.target.value)}
                 className="w-full bg-slate-800 text-white text-xs font-medium rounded-xl p-3 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
+                />
             </div>
 
             <div>
@@ -1617,7 +1782,7 @@ export const CreativeStudioView: React.FC = () => {
                 value={lpProduct}
                 onChange={(e) => setLpProduct(e.target.value)}
                 className="w-full bg-slate-800 text-white text-xs font-medium rounded-xl p-3 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
+                />
             </div>
 
             <div>
@@ -1627,7 +1792,7 @@ export const CreativeStudioView: React.FC = () => {
                 value={lpOffer}
                 onChange={(e) => setLpOffer(e.target.value)}
                 className="w-full bg-slate-800 text-white text-xs font-medium rounded-xl p-3 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
+                />
             </div>
 
             <div className="md:col-span-3 flex justify-end">

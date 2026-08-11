@@ -194,7 +194,7 @@ Retorne em formato JSON estruturado com:
 // AI Prompt Generator for Images, Videos, Copy, and Carousels (With Multimodal Image Reference Support)
 app.post("/api/ai/generate-prompts", async (req, res) => {
   try {
-    const { niche, concept, style, format, promptType, subject, characterDetails, referenceImage, secondImage, imageMode, videoDetails } = req.body;
+    const { niche, concept, style, format, promptType, subject, characterDetails, referenceImage, secondImage, imageMode, videoDetails, storyboardDetails } = req.body;
     const ai = getGeminiClient();
 
     const targetType = promptType || "Imagem";
@@ -202,20 +202,19 @@ app.post("/api/ai/generate-prompts", async (req, res) => {
     let characterInfoText = "";
     if (characterDetails) {
       const { gender, age, ethnicity, characterType } = characterDetails;
-      characterInfoText = `\nDETALHES DO PERSONAGEM/ATOR (MUITO IMPORTANTE):
-- Tipo de Personagem: ${characterType || "Conforme solicitado"}
-- Gênero: ${gender || "Qualquer"}
-- Faixa Etária: ${age || "Conforme o nicho"}
-- Etnia / Aparência: ${ethnicity || "Conforme o nicho"}`;
+      characterInfoText = `\nDETALHES DO PERSONAGEM/ATOR (MUITO IMPORTANTE):\n- Tipo de Personagem: ${characterType || "Conforme solicitado"}\n- Gênero: ${gender || "Qualquer"}\n- Faixa Etária: ${age || "Conforme o nicho"}\n- Etnia / Aparência: ${ethnicity || "Conforme o nicho"}`;
     }
 
     let videoInfoText = "";
     if (videoDetails) {
       const { duration, cameraMotion, extraDetails, lighting, transition } = videoDetails;
-      videoInfoText = `\nDETALHES ESPECÍFICOS DE VÍDEO (RUNWAY GEN-3, SORA, LUMA, KLING):
-- Duração/Tempo: ${duration || "Conforme o conceito"}
-- Movimentação de Câmera e Geração: ${cameraMotion || "Movimento Livre"}
-\n- Iluminação do Vídeo: ${lighting || "Conforme cena"}\n- Transição de Câmera: ${transition || "Corte Seco"}\n- Detalhes Específicos do Usuário: ${extraDetails || "Nenhum detalhe adicional informado"}`;
+      videoInfoText = `\nDETALHES ESPECÍFICOS DE VÍDEO (RUNWAY GEN-3, SORA, LUMA, KLING):\n- Duração/Tempo: ${duration || "Conforme o conceito"}\n- Movimentação de Câmera e Geração: ${cameraMotion || "Movimento Livre"}\n- Iluminação do Vídeo: ${lighting || "Conforme cena"}\n- Transição de Câmera: ${transition || "Corte Seco"}\n- Detalhes Específicos do Usuário: ${extraDetails || "Nenhum detalhe adicional informado"}`;
+    }
+
+    let storyboardInfoText = "";
+    if (storyboardDetails) {
+      const { scenes, duration, cameraMotion, lighting, story } = storyboardDetails;
+      storyboardInfoText = `\nDETALHES DO STORYBOARD DE VÍDEO (Sequência Narrativa):\n- Quantidade de Cenas Desejadas: ${scenes || 5}\n- Tempo Total Estimado: ${duration || "Conforme necessário"}\n- Estilo de Câmera Predominante: ${cameraMotion || "Livre"}\n- Iluminação Predominante: ${lighting || "Cinematográfica"}\n- Enredo/História: ${story || "Crie uma narrativa engajadora para o nicho."}`;
     }
 
     let imageReferenceInstruction = "";
@@ -236,7 +235,7 @@ Análise a imagem fornecida visualmente e gere prompts especificamente adaptados
     const textPrompt = `Gere 3 prompts profissionais e ultra detalhados de alta conversão para o nicho "${niche}".
 Tipo de Prompt Solicitado: ${targetType} (Opções: Imagem, Vídeo, Copy / Texto, Carrossel)
 Conceito Principal / Produto: ${concept}
-Elemento/Sujeito da Cena (Pessoas/Objetos/Itens): ${subject || "Conforme o produto e conceito"}${characterInfoText}${videoInfoText}${imageReferenceInstruction}
+Elemento/Sujeito da Cena (Pessoas/Objetos/Itens): ${subject || "Conforme o produto e conceito"}${characterInfoText}${videoInfoText}${storyboardInfoText}${imageReferenceInstruction}
 Estilo Desejado: ${style || "Fotografia Comercial 8k de Alta Conversão"}
 Formato/Proporção Solicitada: ${format || "1:1 Feed e 9:16 Stories/Reels"}
 

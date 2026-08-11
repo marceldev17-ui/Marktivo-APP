@@ -16,7 +16,8 @@ import {
   Flame,
   Bot,
   Building2,
-  Mic
+  Mic,
+  Square
 } from "lucide-react";
 
 interface CampaignBuilderViewProps {
@@ -54,9 +55,16 @@ const TARGET_AUDIENCES = [
 
 export const VoiceInputBtn: React.FC<{ onResult: (text: string) => void }> = ({ onResult }) => {
   const [isListening, setIsListening] = useState(false);
+  const recognitionRef = React.useRef<any>(null);
 
   const toggleListen = () => {
-    if (isListening) return;
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsListening(false);
+      return;
+    }
     
     // @ts-ignore
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -66,7 +74,11 @@ export const VoiceInputBtn: React.FC<{ onResult: (text: string) => void }> = ({ 
     }
     
     const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
     recognition.lang = 'pt-BR';
+    
+    // Configura para não parar quando o usuário faz pausas
+    recognition.continuous = true;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
     
@@ -75,12 +87,22 @@ export const VoiceInputBtn: React.FC<{ onResult: (text: string) => void }> = ({ 
     };
     
     recognition.onresult = (event: any) => {
-      const speechResult = event.results[0][0].transcript;
-      onResult(speechResult);
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript + ' ';
+        }
+      }
+      if (finalTranscript.trim()) {
+        onResult(finalTranscript.trim());
+      }
     };
     
     recognition.onspeechend = () => {
-      recognition.stop();
+      // Deixamos vazio para não parar no "speechend" se quisermos escuta contínua
+    };
+    
+    recognition.onend = () => {
       setIsListening(false);
     };
     
@@ -96,14 +118,21 @@ export const VoiceInputBtn: React.FC<{ onResult: (text: string) => void }> = ({ 
     <button
       type="button"
       onClick={toggleListen}
-      className={`p-1.5 rounded-lg border transition-colors ${
+      className={`rounded-lg border transition-all flex items-center justify-center gap-1.5 ${
         isListening
-          ? "bg-red-500/20 text-red-400 border-red-500/50 animate-pulse"
-          : "bg-slate-700/50 text-slate-400 hover:text-white border-slate-600 hover:bg-slate-600"
+          ? "bg-red-500/20 text-red-400 border-red-500/50 animate-pulse px-3 py-1.5 font-bold text-[10px] uppercase tracking-wider shadow-lg shadow-red-500/20"
+          : "bg-slate-700/50 text-slate-400 hover:text-white border-slate-600 hover:bg-slate-600 p-1.5"
       }`}
-      title="Falar"
+      title={isListening ? "Parar Gravação" : "Falar"}
     >
-      <Mic className="h-4 w-4" />
+      {isListening ? (
+        <>
+          <Square className="h-3 w-3 fill-current" />
+          <span>Parar</span>
+        </>
+      ) : (
+        <Mic className="h-4 w-4" />
+      )}
     </button>
   );
 };
